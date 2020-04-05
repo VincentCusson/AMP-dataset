@@ -10,25 +10,25 @@ To run the Python server:
 
 ##### Browser MIDI access via JavaScript
 ###### MIDI input handling
-https://github.com/djipco/webmidi
+* https://github.com/djipco/webmidi
 
 ###### Write to MIDI file
-https://github.com/Tonejs/Midi
-https://github.com/grimmdude/MidiWriterJS
-https://github.com/sergi/jsmidi
-https://github.com/jazz-soft/JZZ-midi-SMF
-https://midi-me.glitch.me/
-https://github.com/cagpie/web-midi-recording
+* https://github.com/Tonejs/Midi
+* https://github.com/grimmdude/MidiWriterJS
+* https://github.com/sergi/jsmidi
+* https://github.com/jazz-soft/JZZ-midi-SMF
+* https://midi-me.glitch.me/
+* https://github.com/cagpie/web-midi-recording
 
 ###### MIDI sound playback
-https://github.com/gleitz/midi-js-soundfonts
-https://github.com/Mindwerks/wildmidi
-https://github.com/mudcube/MIDI.js
+* https://github.com/gleitz/midi-js-soundfonts
+* https://github.com/Mindwerks/wildmidi
+* https://github.com/mudcube/MIDI.js
 
 ###### Note visualisation
-https://github.com/topics/piano-keyboard?l=javascript
-https://github.com/felipefialho/piano
-https://github.com/ManuelVargas1251/Chord-Finder
-https://github.com/OutsourcedGuru/syn-midi !!!
+* https://github.com/topics/piano-keyboard?l=javascript
+* https://github.com/felipefialho/piano
+* https://github.com/ManuelVargas1251/Chord-Finder
+* https://github.com/OutsourcedGuru/syn-midi !!!
 
 ##### MIDI files analysis in Python
