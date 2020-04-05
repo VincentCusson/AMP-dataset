@@ -18,7 +18,7 @@ https://github.com/grimmdude/MidiWriterJS
 https://github.com/sergi/jsmidi
 https://github.com/jazz-soft/JZZ-midi-SMF
 https://midi-me.glitch.me/
-https://github.com/interactiveaudiolab/CAQE
+https://github.com/cagpie/web-midi-recording
 
 ###### MIDI sound playback
 https://github.com/gleitz/midi-js-soundfonts
