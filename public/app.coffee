@@ -6,8 +6,9 @@ fullscreen_target_el = document.getElementById("fullscreen-target")
 canvas = document.getElementById("midi-viz-canvas")
 no_notes_recorded_message_el = document.getElementById("no-notes-recorded-message")
 no_midi_devices_message_el = document.getElementById("no-midi-devices-message")
-loading_midi_devices_message_el = document.getElementById("loading-midi-devices-message")
-export_midi_file_button = document.getElementById("export-midi-file-button")
+loading_midi_devices_message_el = document.getElementById("selectIn")
+usersurvey = document.getElementById("usersurvey")
+export_midi_file_button = document.getElementById("submit")
 play_file_button = document.getElementById("play-file-button")
 fullscreen_button = document.getElementById("fullscreen-button")
 px_per_second_input = document.getElementById("note-gravity-pixels-per-second")
@@ -33,6 +34,12 @@ learning_range = [null, null]
 view_range_while_learning = [0, 128]
 
 
+objectifyForm = (formArray) ->
+	returnArray = {}
+	for [0...10]
+		returnArray[formArray[i]['name']] = formArray[i]['value']
+	return returnArray
+
 uuid = ->
   'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) ->
     r = Math.random() * 16 | 0
@@ -41,141 +48,17 @@ uuid = ->
 )
 
 sessionuuid = uuid()
-
-show_error_screen_replacing_ui = (message, error)->
-	error_message_el = document.createElement("div")
-	error_message_el.className = "error-message"
-	error_message_el.textContent = message
-	if error
-		error_pre = document.createElement("pre")
-		error_pre.textContent = error
-		error_message_el.appendChild(error_pre)
-	el_to_replace_content_of_on_error.innerHTML = ""
-	el_to_replace_content_of_on_error.appendChild(error_message_el)
-
-normalize_range = (range)->
-	valid_int_0_to_128 = (value)->
-		int = parseInt(value)
-		return null if isNaN(int) or int < 0 or int > 128
-		return int 
-	return [
-		valid_int_0_to_128(range[0]) ? 0
-		valid_int_0_to_128(range[1]) ? 128
-	]
-
-set_selected_range = (range)->
-	selected_range = normalize_range(range)
-	unless is_learning_range
-		[midi_range_left_input.value, midi_range_right_input.value] = selected_range
-
-save_options = ->
-	[from_midi_val, to_midi_val] = selected_range
-	data =
-		"layout": layout
-		"gravity-direction": note_gravity_direction
-		"pixels-per-second": px_per_second
-		"midi-range": "#{from_midi_val}..#{to_midi_val}"
-	keyvals =
-		for key, val of data
-			"#{key}=#{val}"
-	location.hash = keyvals.join("&")
-	
-	# NOTE: (sort of) redundantly loading options from hash on hashchange after setting hash
-	# This actually applies the normalization tho so it's kind of nice
-	# e.g. 1.0 -> 1, 1.5 -> 1, 1000 -> 128
-	# altho it's inconsistent in when it gets applied - if the hash is the same (i.e. because the normalized values are the same), it doesn't update
-	# so for example 1.0 -> 1 followed by 1.5 -> 1 doesn't actually normalize, and gets left on the invalid value 1.5
-
-	# I'm not sure this is the best behavior, to apply normalization to invalid user inputs, but let's at least be consistent
-	# (and further redundant in the case that a hashchange will occur)
-	load_options()
-
-load_options = ->
-	data = {}
-	for keyval in location.hash.replace(/^#/, "").split("&") when keyval.match(/=/)
-		[key, val] = keyval.split("=")
-		key = key.trim()
-		val = val.trim()
-		data[key] = val
-	# TODO: reset to original defaults when not in URL, in case you hit the back button
-	if data["midi-range"]
-		set_selected_range(data["midi-range"].split(".."))
-	if data["pixels-per-second"]
-		px_per_second = parseFloat(data["pixels-per-second"])
-		px_per_second_input.value = px_per_second
-	if data["gravity-direction"]
-		note_gravity_direction = data["gravity-direction"].toLowerCase()
-		note_gravity_direction_select.value = note_gravity_direction
-	if data["layout"]
-		layout = data["layout"].toLowerCase()
-		layout_select.value = layout
-
-update_options_from_inputs = ->
-	set_selected_range([midi_range_left_input.value, midi_range_right_input.value])
-	px_per_second = parseFloat(px_per_second_input.value) || 20
-	note_gravity_direction = note_gravity_direction_select.value
-	layout = layout_select.value
-	# TODO: debounce saving
-	save_options()
-
-# TODO: use oninput
-midi_range_left_input.onchange = update_options_from_inputs
-midi_range_right_input.onchange = update_options_from_inputs
-px_per_second_input.onchange = update_options_from_inputs
-note_gravity_direction_select.onchange = update_options_from_inputs
-layout_select.onchange = update_options_from_inputs
-
-load_options()
-update_options_from_inputs()
-
-addEventListener("hashchange", load_options)
-
+console.log(sessionuuid);
 midi_device_ids_to_rows = new Map
 
 smi = new SimpleMidiInput()
 
-loading_midi_devices_message_el.hidden = false
+#loading_midi_devices_message_el.hidden = false
 
 on_success = (midi)->
 	smi.attach(midi)
-#	console.log 'smi: ', smi
-#	console.log 'inputs (as a Map): ', new Map(midi.inputs)
-
-	loading_midi_devices_message_el.hidden = true
-	no_midi_devices_message_el.hidden = false
-	midi.onstatechange = (e)->
-		if e.port.type is "input"
-			no_midi_devices_message_el.hidden = true
-
-			connected = e.port.state is "connected" and e.port.connection is "open"
-
-			tr = midi_device_ids_to_rows.get(e.port.id)
-			unless tr
-				tr = document.createElement("tr")
-				midi_devices_table.appendChild(tr)
-				midi_device_ids_to_rows.set(e.port.id, tr)
-			tr.innerHTML = ""
-			tr.className = "midi-port midi-device-is-#{e.port.state}#{if connected then " midi-port-is-open" else ""}"
-
-			td = document.createElement("td")
-			td.setAttribute("aria-label", (if connected then "connected" else "disconnected"))
-			td.className = "midi-port-status"
-			tr.appendChild(td)
-
-			td = document.createElement("td")
-			td.textContent = e.port.name
-			tr.appendChild(td)
-
-			# auto detect range based on device
-			# not sure if I should do this, considering there are instruments that transpose up or down an octave
-			# as well as user-explicit transposition
-			# if connected
-			# 	unless location.hash.match(/midi-range/)
-			# 		if e.port.name is "Yamaha Portable G-1"
-			# 			set_selected_range([28, 103])
-
-#			console.log(e.port, e.port.name, e.port.state, e.port.connection)
-
+	console.log 'smi: ', smi
+	console.log 'inputs (as a Map): ', new Map(midi.inputs)
 
 on_error = (error)->
 	show_error_screen_replacing_ui("Failed to get MIDI access", error)
@@ -188,7 +71,7 @@ else
 
 notes = []
 current_notes = new Map
-export_midi_file_button.disabled = true
+#export_midi_file_button.disabled = true
 
 current_pitch_bend_value = 0
 global_pitch_bends = []
@@ -272,6 +155,7 @@ demo = ->
 window.demo = demo
 
 smi.on 'noteOn', (data)->
+	console.log("yoyoyo");
 	{event, key, velocity} = data
 	old_note = current_notes.get(key)
 	start_time = performance.now()
@@ -286,13 +170,8 @@ smi.on 'noteOn', (data)->
 	current_notes.set(key, note)
 	notes.push(note)
 
-	no_notes_recorded_message_el.hidden = true
-	export_midi_file_button.disabled = false
-
-	if is_learning_range
-		learning_range[0] = Math.min(learning_range[0] ? key, key)
-		learning_range[1] = Math.max(learning_range[1] ? key, key)
-		[midi_range_left_input.value, midi_range_right_input.value] = learning_range
+	#no_notes_recorded_message_el.hidden = true
+	#export_midi_file_button.disabled = false
 
 smi.on 'noteOff', (data)->
 	{event, key} = data
@@ -356,168 +235,6 @@ for is_accidental, i in piano_accidental_pattern
 # console.log {group_of_2_span_size, group_of_3_span_size, accidental_key_size}
 # console.log group_of_2_span_size/natural_key_size, group_of_3_span_size/natural_key_size, accidental_key_size/natural_key_size
 # 1.8712871287128714 2.9108910891089113 0.6237623762376237
-
-natural_key_size = 12 / 7
-accidental_key_size = natural_key_size * 0.6
-group_of_2_span_size = natural_key_size * 1.87
-group_of_3_span_size = natural_key_size * 2.91
-
-piano_layout = for is_accidental, octave_key_index in piano_accidental_pattern
-	if is_accidental
-		nth_accidental = nth_accidentals[octave_key_index]
-		is_group_of_3 = nth_accidental > 2
-		accidentals_in_group = if is_group_of_3 then 3 else 2
-		gaps_in_group = accidentals_in_group - 1
-		nth_accidental_in_group = if is_group_of_3 then nth_accidental - 2 else nth_accidental
-		group_center = natural_key_size * (if is_group_of_3 then 5 else 1.5)
-		group_span_size = if is_group_of_3 then group_of_3_span_size else group_of_2_span_size
-		gap_size = (group_span_size - accidentals_in_group * accidental_key_size) / gaps_in_group
-		space_between_key_centers = accidental_key_size + gap_size
-		key_center_x =
-			group_center +
-			(nth_accidental_in_group - (accidentals_in_group + 1) / 2) * space_between_key_centers
-		x1 = key_center_x - accidental_key_size / 2
-		x2 = key_center_x + accidental_key_size / 2
-	else
-		nth_natural = nth_naturals[octave_key_index]
-		x1 = (nth_natural - 1) * natural_key_size
-		x2 = (nth_natural + 0) * natural_key_size
-	{x1, x2}
-
-ctx = canvas.getContext "2d"
-
-do animate = ->
-	if is_learning_range
-		[min_midi_val, max_midi_val] = view_range_while_learning
-	else
-		[left_midi_val, right_midi_val] = selected_range
-		min_midi_val = Math.min(left_midi_val, right_midi_val)
-		max_midi_val = Math.max(left_midi_val, right_midi_val)
-	
-	requestAnimationFrame animate
-	now = performance.now()
-
-	canvas.width = innerWidth if canvas.width isnt innerWidth
-	canvas.height = innerHeight if canvas.height isnt innerHeight
-	ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-	ctx.save()
-
-	if note_gravity_direction in ["down", "right"]
-		# "that's downright backwards!" haha
-		ctx.translate(0, canvas.height)
-		ctx.scale(1, -1)
-	
-	if note_gravity_direction in ["left", "right"]
-		ctx.translate(canvas.width/2, canvas.height/2)
-		ctx.rotate(Math.PI / 2 * if note_gravity_direction is "left" then -1 else +1)
-		ctx.translate(-canvas.height/2, -canvas.width/2)
-
-	pitch_axis_canvas_length = if note_gravity_direction in ["left", "right"] then canvas.height else canvas.width
-	time_axis_canvas_length = if note_gravity_direction in ["left", "right"] then canvas.width else canvas.height
-
-	if left_midi_val > right_midi_val
-		ctx.translate(pitch_axis_canvas_length, 0)
-		ctx.scale(-1, 1)
-
-	ctx.translate(0, time_axis_canvas_length*4/5)
-	ctx.fillStyle = "red"
-	ctx.fillRect(0, 1, pitch_axis_canvas_length, 1)
-	# ctx.globalAlpha = 0.2
-	
-	get_note_location_midi_space = (note_midi_val)->
-		octave_key_index = note_midi_val %% piano_accidental_pattern.length
-		is_accidental = piano_accidental_pattern[octave_key_index]
-		if layout is "piano"
-			octave_start_midi_val = Math.floor(note_midi_val / 12) * 12
-			{x1, x2} = piano_layout[octave_key_index]
-			x1 += octave_start_midi_val
-			x2 += octave_start_midi_val
-		else
-			x1 = note_midi_val
-			x2 = note_midi_val + 1
-		{x1, x2, is_accidental}
-	
-	if layout is "piano"
-		midi_x1 = get_note_location_midi_space(min_midi_val).x1
-		midi_x2 = get_note_location_midi_space(max_midi_val).x2
-	else
-		midi_x1 = min_midi_val
-		midi_x2 = max_midi_val + 1
-
-	midi_to_canvas_scalar = pitch_axis_canvas_length / (midi_x2 - midi_x1)
-	get_note_location_canvas_space = (note_midi_val)->
-		{x1, x2, is_accidental} = get_note_location_midi_space(note_midi_val)
-		x1 = (x1 - midi_x1) * midi_to_canvas_scalar
-		x2 = (x2 - midi_x1) * midi_to_canvas_scalar
-		{x: x1, w: x2 - x1, is_accidental}
-
-	for sustain_period, i in global_sustain_periods
-		start_y = (sustain_period.start_time - now) / 1000 * px_per_second
-		end_y = ((sustain_period.end_time ? now) - now) / 1000 * px_per_second
-		ctx.fillStyle = "rgba(128, 128, 128, 0.3)"
-		ctx.fillRect(0, start_y, pitch_axis_canvas_length, end_y - start_y)
-
-	for note in notes
-		{x, w, is_accidental} = get_note_location_canvas_space(note.key, pitch_axis_canvas_length)
-		unless note.length?
-			# for ongoing (held) notes, display a bar at the bottom like a key
-			# TODO: maybe bend this?
-			ctx.fillStyle = "#800"
-			ctx.fillRect(x, 2, w, 50000)
-		ctx.fillStyle =
-			# if is_accidental
-			# 	if note.length then "#f79" else "aqua"
-			# else
-				if note.length then "yellow" else "lime"
-		# ctx.strokeStyle = if note.length then "yellow" else "lime"
-		# smooth = no
-		# if smooth
-		# 	ctx.beginPath()
-		# 	for pitch_bend, i in note.pitch_bends
-		# 		next_pitch_bend = note.pitch_bends[i + 1]
-		# 		y = (pitch_bend.time - now) / 1000 * px_per_second
-		# 		# h = (note.length ? now - note.start_time) / 1000 * px_per_second
-		# 		end = next_pitch_bend?.time ? note.end_time ? now
-		# 		h = (end - pitch_bend.time) / 1000 * px_per_second + 0.5
-		# 		bent_x = x + pitch_bend.value * 2 * midi_to_canvas_scalar
-		# 		ctx.lineTo(bent_x, y)
-		# 		# ctx.lineTo(bent_x, y)
-		# 	ctx.lineTo(bent_x, y + h)
-		# 	ctx.lineTo(bent_x + w, y + h)
-
-		# 	for pitch_bend, i in note.pitch_bends by -1
-		# 		next_pitch_bend = note.pitch_bends[i + 1]
-		# 		y = (pitch_bend.time - now) / 1000 * px_per_second
-		# 		# h = (note.length ? now - note.start_time) / 1000 * px_per_second
-		# 		end = next_pitch_bend?.time ? note.end_time ? now
-		# 		# h = (end - pitch_bend.time) / 1000 * px_per_second + 0.5
-		# 		bent_x = x + pitch_bend.value * 2 * midi_to_canvas_scalar
-		# 		ctx.lineTo(bent_x + w, y)
-		# 	ctx.fill()
-		# else
-		for pitch_bend, i in note.pitch_bends
-			next_pitch_bend = note.pitch_bends[i + 1]
-			y = (pitch_bend.time - now) / 1000 * px_per_second
-			# h = (note.length ? now - note.start_time) / 1000 * px_per_second
-			end = next_pitch_bend?.time ? note.end_time ? now
-			h = (end - pitch_bend.time) / 1000 * px_per_second + 0.5
-			bent_x = x + pitch_bend.value * 2 * midi_to_canvas_scalar
-			ctx.fillRect(bent_x, y, w, h)
-			# console.log x, y, w, h
-	if is_learning_range
-		for extremity_midi_val, i in learning_range
-			if extremity_midi_val?
-				{x, w} = get_note_location_canvas_space(extremity_midi_val, pitch_axis_canvas_length)
-				ctx.fillStyle = "red"
-				ctx.fillRect(x, 0, w, time_axis_canvas_length)
-	ctx.restore()
-
-play_file_button.onclick = ->
-
-	midiPlayer = new MidiPlayer();
-	output_array_buffer = midi_file.getContent()
-	midiPlayer.play({output_array_buffer, name: "preview" });
 
 export_midi_file_button.onclick = ->
 
@@ -643,11 +360,18 @@ export_midi_file_button.onclick = ->
 	midi_file.setTrackEvents(1, events)
 
 	output_array_buffer = midi_file.getContent()
+
+	blob = new Blob([output_array_buffer], {type: "audio/midi"})
+	saveAs(blob, "recording.midi")
+	
 	console.log(output_array_buffer);
 
 	stringFirstTrackEvents = JSON.stringify(first_track_events);
 	stringEvents = JSON.stringify(events);
 	
+	userdata = new FormData(usersurvey);
+	console.log(userdata)
+
 	$.post '/savemidi',
 		type: 'POST'
 		dataType: 'json'
@@ -655,49 +379,3 @@ export_midi_file_button.onclick = ->
 		firsttrackevents: stringFirstTrackEvents
 		events: stringEvents
 		(data) -> $('#no-notes-recorded-message').append "Successfully posted to the page."
-
-
-fullscreen_button.onclick = ->
-	if fullscreen_target_el.requestFullscreen
-		fullscreen_target_el.requestFullscreen()
-	else if fullscreen_target_el.mozRequestFullScreen
-		fullscreen_target_el.mozRequestFullScreen()
-	else if fullscreen_target_el.webkitRequestFullScreen
-		fullscreen_target_el.webkitRequestFullScreen()
-
-end_learn_range = ->
-	is_learning_range = false
-	cancel_learn_range_button.hidden = true
-	apply_text_el.hidden = true
-	learn_range_text_el.hidden = false
-	learning_range = [null, null]
-	midi_range_left_input.disabled = false
-	midi_range_right_input.disabled = false
-	[midi_range_left_input.value, midi_range_right_input.value] = selected_range
-
-learn_range_or_apply_button.onclick = ->
-	if is_learning_range
-		set_selected_range(learning_range)
-		save_options()
-		end_learn_range()
-	else
-		is_learning_range = true
-		cancel_learn_range_button.hidden = false
-		apply_text_el.hidden = false
-		learn_range_text_el.hidden = true
-		learning_range = [null, null]
-		midi_range_left_input.disabled = true
-		midi_range_right_input.disabled = true
-		[midi_range_left_input.value, midi_range_right_input.value] = view_range_while_learning
-
-cancel_learn_range_button.onclick = end_learn_range
-
-KEYCODE_ESC = 27
-
-# supposedly keydown doesn't work consistently in all browsers
-document.body.addEventListener "keydown", (event)->
-	if event.keyCode is KEYCODE_ESC
-		end_learn_range()
-document.body.addEventListener "keyup", (event)->
-	if event.keyCode is KEYCODE_ESC
-		end_learn_range()
