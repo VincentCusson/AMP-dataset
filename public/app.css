@@ -1,0 +1,241 @@
+html,
+body {
+	font-family: Helvetica, sans-serif;
+	padding: 0;
+	margin: 0;
+	background: #1B1B1B;
+	color: white;
+	line-height: 1em;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	overflow: hidden;
+}
+
+.outer-container {
+	display: flex;
+	height: 100%;
+}
+
+.centering-container {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 1;
+	/*overflow-y: scroll;*/ /* always visible so page doesn't shift horizontally when scrollbar appears or disappears */
+	overflow-y: auto; /* scrollbar only visible when needed */
+}
+
+.app-informational-overlay {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	margin: auto;
+	z-index: 1;
+}
+
+#fullscreen-target {
+	position: fixed;
+	top: 0;
+	left: 0;
+}
+
+#fullscreen-target,
+#midi-viz-canvas {
+	pointer-events: none;
+}
+
+@media (max-width: 75em) and (max-height: 55em), print {
+	#fork-me-on-github {
+		display: none;
+	}
+}
+
+.two-column-layout {
+	display: flex;
+	flex-direction: row;
+	margin-bottom: 1em;
+}
+@media (max-width: 60em) {
+	.two-column-layout {
+		flex-direction: column;
+	}
+}
+.two-column-layout p {
+	max-width: 25em;
+}
+#midi-devices {
+	min-width: 250px;
+}
+.midi-port-status:after {
+	content: "";
+	display: inline-block;
+	vertical-align: center;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: red;
+}
+.midi-port-is-open .midi-port-status:after {
+	background: lime;
+}
+.midi-port.midi-device-is-disconnected {
+	text-decoration: line-through;
+}
+
+.error-message {
+	background: maroon;
+	color: white;
+	padding: 1em;
+}
+.error-message pre {
+	margin: 0;
+	margin-top: 1em;
+}
+
+fieldset {
+	border: 2px solid gray;
+	border-radius: 8px;
+	background: rgba(30, 30, 30, 0.5);
+	padding: 1em;
+	/* padding-bottom: calc(1em + 1.3em / 2); - to balance with the top which has the <legend>, mathematically */
+	padding-bottom: 1.5em; /* to balance with the top which has the <legend> */
+}
+legend {
+	background-color: #1a1a1a;
+	color: #aaa;
+	padding: 3px 6px;
+	border-radius: 2px;
+	font-size: 1.3em;
+}
+#controls > fieldset:not(:first-of-type) {
+	margin-top: 1.3em;
+}
+/*.control-row {
+	line-height: 2em;
+}*/
+.control-row:not(:first-of-type) {
+	margin-top: 0.5em;
+}
+
+ul.bullets-in-items {
+	list-style-type: none;
+	padding: 0;
+}
+li {
+	padding: 2px 0;
+}
+.supported {
+	color: lime;
+}
+.caveat {
+	color: #ff5d5d;
+}
+
+.button-functional {
+	border: none;
+	background: none;
+	padding: 0;
+}
+.button-functional,
+.button-visual {
+	vertical-align: middle;
+	display: inline-flex; /* NOTE: overrides display: none implicit style from "hidden" attribute*/
+	justify-content: center;
+	align-items: center;
+}
+.button-functional[hidden] {
+	visibility: hidden;
+}
+
+.button-visual {
+	line-height: 0.8;
+	height: 1.5em;
+	width: 10em;
+	font-size: 14px;
+	font-weight: bold;
+	background-color: #434343;
+	background-image: linear-gradient(100% 100% 90deg, #515151, #7A7A7A);
+	border: none;
+	border-radius: 4px;
+	box-shadow: inset 0 1px 2px rgba(255,255,255,0.2), 0 1px 0 #2D2D2D, 0 2px 0 #2D2D2D, 0 3px 0 #2C2C2C, 0 4px 0 #2A2A2A, 0 0 0 2px black, 0 4px 0 2px black, 0 0 0 3px #222, 0 4px 0 3px #222;
+	padding: 9px 16px;
+	margin-bottom: 3px;
+	color: #ddd;
+}
+
+.button-functional:disabled .button-visual {
+	color: #555;
+	background: #222;
+	box-shadow: inset 0 1px 2px rgba(255,255,255,0.05), 0 4px 0 #111, 0 0 0 2px black, 0 4px 0 2px black, 0 0 0 3px #222, 0 4px 0 3px #222;
+}
+
+.button-functional:enabled:hover .button-visual { color: white }
+
+.button-functional:enabled:active .button-visual {
+	margin-top: 3px;
+	margin-bottom: 0px;
+	box-shadow: inset 0 1px 2px rgba(255,255,255,0.2), 0 1px 0 #2A2A2A, 0 1px 0 2px black, 0 1px 0 3px #222;
+} 
+
+.button-functional {
+	outline: none;
+}
+.button-functional:focus .button-visual {
+	outline: 2px auto #2b8ce2;
+	outline: 2px auto -webkit-focus-ring-color;
+}
+
+button span[aria-hidden],
+button svg {
+	margin-right: 5px;
+}
+button svg {
+	height: 1em;
+	width: 1em;
+}
+#learn-range-or-apply-button svg {
+	height: 1.5em;
+	width: 3em;
+}
+#fullscreen-button svg path {
+	fill: currentColor;
+}
+
+#no-notes-recorded-message,
+#loading-midi-devices-message,
+#no-midi-devices-message {
+	color: gray;
+}
+
+input {
+	background: #111;
+	color: white;
+	padding: 4px;
+	width: calc(4ch + 20px);
+	border: 1px solid #5f5f5f;
+	border-radius: 2px;
+}
+input:disabled {
+	color: #555;
+	background: #111;
+	border-color: #333;
+}
+input:invalid {
+	background: #e83636;
+	color: white;
+}
+
+a {
+	color: #00ceff;
+}
+
+.visually-hidden {
+	position: absolute;
+	left: -10000px;
+	top: auto;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}
