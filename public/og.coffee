@@ -8,7 +8,6 @@ no_notes_recorded_message_el = document.getElementById("no-notes-recorded-messag
 no_midi_devices_message_el = document.getElementById("no-midi-devices-message")
 loading_midi_devices_message_el = document.getElementById("loading-midi-devices-message")
 export_midi_file_button = document.getElementById("export-midi-file-button")
-play_file_button = document.getElementById("play-file-button")
 fullscreen_button = document.getElementById("fullscreen-button")
 px_per_second_input = document.getElementById("note-gravity-pixels-per-second")
 note_gravity_direction_select = document.getElementById("note-gravity-direction-select")
@@ -26,21 +25,11 @@ layout = "equal"
 px_per_second = 20
 note_gravity_direction = "up"
 selected_range = [0, 128]
-midi_file = new MIDIFile()
 
 is_learning_range = false
 learning_range = [null, null]
 view_range_while_learning = [0, 128]
 
-
-uuid = ->
-  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) ->
-    r = Math.random() * 16 | 0
-    v = if c is 'x' then r else (r & 0x3|0x8)
-    v.toString(16)
-)
-
-sessionuuid = uuid()
 
 show_error_screen_replacing_ui = (message, error)->
 	error_message_el = document.createElement("div")
@@ -513,13 +502,8 @@ do animate = ->
 				ctx.fillRect(x, 0, w, time_axis_canvas_length)
 	ctx.restore()
 
-play_file_button.onclick = ->
-
-	midiPlayer = new MidiPlayer();
-	output_array_buffer = midi_file.getContent()
-	midiPlayer.play({output_array_buffer, name: "preview" });
-
 export_midi_file_button.onclick = ->
+	midi_file = new MIDIFile()
 
 	if notes.length is 0
 		alert "No notes have been recorded!"
@@ -642,19 +626,12 @@ export_midi_file_button.onclick = ->
 	midi_file.addTrack(1)
 	midi_file.setTrackEvents(1, events)
 
-	output_array_buffer = midi_file.getContent()
-	console.log(output_array_buffer);
+#	console.log({first_track_events, events})
 
-	stringFirstTrackEvents = JSON.stringify(first_track_events);
-	stringEvents = JSON.stringify(events);
+	output_array_buffer = midi_file.getContent()
 	
-	$.post '/savemidi',
-		type: 'POST'
-		dataType: 'json'
-		sessionuuid: sessionuuid
-		firsttrackevents: stringFirstTrackEvents
-		events: stringEvents
-		(data) -> $('#no-notes-recorded-message').append "Successfully posted to the page."
+	blob = new Blob([output_array_buffer], {type: "audio/midi"})
+	saveAs(blob, "recording.midi")
 
 
 fullscreen_button.onclick = ->
