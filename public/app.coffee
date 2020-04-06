@@ -361,11 +361,6 @@ export_midi_file_button.onclick = ->
 
 	output_array_buffer = midi_file.getContent()
 
-	blob = new Blob([output_array_buffer], {type: "audio/midi"})
-	saveAs(blob, "recording.midi")
-	
-	console.log(output_array_buffer);
-
 	stringFirstTrackEvents = JSON.stringify(first_track_events);
 	stringEvents = JSON.stringify(events);
 	

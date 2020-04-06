@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/VincentCusson/AMIdB/issues"
   },
-  "homepage": "https://github.com/VincentCusson/AMIdB#readme"
+  "homepage": "https://github.com/VincentCusson/AMIdB#readme",
+  "dependencies": {
+    "data-store": "^4.0.3"
+  }
 }
