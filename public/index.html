@@ -3,79 +3,70 @@
 
 <head>
 	<meta charset="utf-8" />
-	<title>MIDI Recorder</title>
+	<title>The AMP Dataset</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<link rel="icon" sizes="16x16" href="favicon.png" />
 	<link rel="stylesheet" href="app.css" />
 </head>
 
 <body>
-	<!--
-	outer centered layout with scrolling
-		https://codepen.io/1j01/pen/KOKOMg
-		based on https://stackoverflow.com/a/16127018/2624876
-	-->
-	<div class="outer-container">
-	<div class="centering-container">
-	<main class="app-informational-overlay replace-content-on-error">
-		<noscript>
-			This app requires JavaScript.
-		</noscript>
-		<h2>Plug in a MIDI keyboard and play away!</h2>
-		<p>You may need to refresh the page after plugging in or turning on your MIDI device.</p>
-		<p>I’ll visualize what you play (in a nice simple way) and record your jams<!--TODO: , saving progressively-->.</p>
-		<div class="two-column-layout">
-			<div>
-				<h3>Features:</h3>
-				<span class="visually-hidden">.</span> <!-- so ChromeVox pronounces "Live" with an I sound -->
-				<ul class="bullets-in-items">
-					<li class="supported">
-						<span>✓</span>
-						<span>Live MIDI visualization</span>
-					</li>
-					<li class="supported">
-						<span>✓</span>
-						<span>Standard MIDI file export</span>
-					</li>
-					<li class="supported">
-						<span>✓</span>
-						<span>Note velocity / loudness</span>
-					</li>
-					<li class="supported">
-						<span>✓</span>
-						<span>Pitch bends</span>
-					</li>
-					<li class="supported">
-						<span>✓</span>
-						<span>Sustain pedal</span>
-					</li>
-					<li class="supported">
-						<span>✓</span>
-						<span>No data sent to any server</span>
-					</li>
-					<li class="supported">
-						<span>✓</span>
-						<span>Options saved in URL</span>
-					</li>
-					<li class="supported">
-						<span>✓</span>
-						<span><a href="https://github.com/1j01/midi-recorder/" target="_blank">Open source</a> (MIT-licensed)</span>
-					</li>
-				</ul>
-				<span class="visually-hidden">.</span> <!-- for screen readers, or at least ChromeVox -->
-				<h3>Caveats:</h3>
-				<p class="caveat">Instrument selection, aftertouch pressure, and miscellaneous MIDI events are not recorded.</p>
-				<p class="caveat">Pitch bend range is assumed to be ± 2 semitones.</p>
-				<p class="caveat">Generated MIDI file currently has excess length.</p>
-			</div>
-			<div>
-				<span class="visually-hidden">.</span> <!-- for screen readers, or at least ChromeVox -->
-				<h3>MIDI devices:</h3>
-				<p id="loading-midi-devices-message" hidden>Loading...</p>
-				<p id="no-midi-devices-message" hidden>No MIDI devices detected</p>
-				<table id="midi-devices" aria-live="assertive"></table>
-			</div>
+	<noscript>
+		This app requires JavaScript.
+	</noscript>
+
+	<!--Title and presentation of the project-->
+	<h2>The AMP dataset</h2>
+	<p>A work in progress dataset of Amateur MIDI Performances crowdsourced over the web.</p>
+	<p>This page allows you to contribute to the dataset by recording a short performance using any of your MIDI keyboard. </p>
+	<p>Read more about this project <a href="url" style="color:#46729e">Here</a>.</p>
+
+	<hr>
+
+	<p>Your MIDI and survey data will be anonymized, preprocessed, and add to the dataset.</p>
+
+	<!--User input elements-->
+	<input type="checkbox" id="accept" name="accept" value="accept">
+	<label for="accept"> I have read and agree to the terms</label>
+
+	<br>
+	<hr>
+
+	<h4>User Survey</h4>
+	<form>
+		<label for="years">Years of experience:</label><br>
+		<input type="text" id="years" name="years"><br>
+		<label for="level">Your experience level [1-10]:</label><br>
+		<input type="text" id="level" name="level"><br>
+		<label for="genre">Prefered genre:</label><br>
+		<input type="text" id="genre" name="genre"><br>
+		<label for="hardw">MIDI hardware:</label><br>
+		<input type="text" id="hardw" name="hardw">
+	</form>
+
+	<hr>
+
+	<p>Please select a MIDI device</p>
+	<select id="selectIn">
+	</select>
+
+	<!--Score visualization-->
+	<img src="scoreC1.png" alt="musicPrompt">
+
+
+	<button type="button" id="start">Start recording</button>
+	<button type="button" id="stop">Stop recording</button>
+	<br>
+	<br>
+	<button class="btn" id="submit"><span>Submit</span></button>
+
+	<!--Piano visualization-->
+	<script src="theory-reference.js"></script>
+	<script src="dom-piano.js"></script>
+
+	<div class="piano">
+		<div id="key-scores">
 		</div>
+<<<<<<< HEAD
 		<div id="controls">
 			<span class="visually-hidden">.</span> <!-- for screen readers, or at least ChromeVox -->
 			<fieldset id="viz-controls">
@@ -165,19 +156,28 @@
 				</button>
 				<span id="no-notes-recorded-message" tabIndex="0">&nbsp;- No notes recorded</span>
 			</fieldset>
+=======
+		<div id="piano-keys">
+>>>>>>> d35ecf5e3ec8be246fdda397ac0d353c9b145f3a
 		</div>
-	</main>
 	</div>
-	</div>
-	<div id="fullscreen-target">
-		<canvas id="midi-viz-canvas"></canvas>
-	</div>
+	
+	<script>
+	const noteReference = new NoteReference()
+	const domPiano = new DomPiano(0,8,noteReference)
+	this.domPiano = domPiano
+	</script>
 
+<<<<<<< HEAD
 	<script src="https://cdn.jsdelivr.net/npm/web-midi-player@latest/index.js"></script>
 	<script>
 		const { 'web-midi-player': { default: MidiPlayer } } = window;
 	</script>
 	<script type = "text/javascript" 
+=======
+	<!--Lib and files importing-->
+	<script type = "text/javascript"
+>>>>>>> d35ecf5e3ec8be246fdda397ac0d353c9b145f3a
 	src = "https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 	<script src="lib/FileSaver.js"></script>
 	<script src="lib/SimpleMidiInput.js"></script>
@@ -185,5 +185,7 @@
 	<script src="lib/midifile/MIDIFile.js"></script>
 	<script src="lib/coffeescript.js"></script>
 	<script src="app.coffee" type="text/coffeescript"></script>
+
+
 </body>
 </html>
