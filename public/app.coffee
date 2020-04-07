@@ -22,6 +22,11 @@ apply_text_el = document.getElementById("apply-midi-range-button-text")
 cancel_learn_range_button = document.getElementById("cancel-learn-midi-range-button")
 midi_devices_table = document.getElementById("midi-devices")
 
+MIDI.loadPlugin({
+		soundfontUrl: "MIDI.js-master/examples/soundfont/",
+		instrument: "acoustic_grand_piano",
+	});
+
 # options are initialized from the URL & HTML later
 layout = "equal"
 px_per_second = 20
@@ -117,7 +122,7 @@ demo = ->
 			# )
 			n for n in [0...128] when (
 				# (n - root) %% 12 < 1
-				# (n - root) %% 12 < Math.abs(Math.sin(t / 8 + Math.sin(t / 2)) - ((n / 128) - 0.5)) 
+				# (n - root) %% 12 < Math.abs(Math.sin(t / 8 + Math.sin(t / 2)) - ((n / 128) - 0.5))
 				# ((n - root) %% 12) % Math.abs(Math.sin(t / 8 + Math.sin(t / 2)) - ((n / 128) - 0.5)) > 1
 
 				# ((n - root) %% 12) % Math.abs(Math.sin(t / 8 + Math.sin(t / 2)) - ((n / 128) - 0.5)) %% 0.5 < 0.1 and
@@ -155,7 +160,9 @@ demo = ->
 window.demo = demo
 
 smi.on 'noteOn', (data)->
-	console.log("yoyoyo");
+	console.log(data.key);
+	MIDI.setVolume(0, 127);
+	MIDI.noteOn(0, data.key, data.velocity, 0);
 	{event, key, velocity} = data
 	old_note = current_notes.get(key)
 	start_time = performance.now()
@@ -363,7 +370,7 @@ export_midi_file_button.onclick = ->
 
 	stringFirstTrackEvents = JSON.stringify(first_track_events);
 	stringEvents = JSON.stringify(events);
-	
+
 	userdata = new FormData(usersurvey);
 	console.log(userdata)
 

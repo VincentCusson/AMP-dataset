@@ -8,7 +8,6 @@ body {
 	line-height: 1em;
 	width: 80%;
 	height: 100%;
-	overflow: hidden;
 }
 
 .btn {
@@ -97,7 +96,7 @@ body {
 
 .piano-key {
   box-sizing: border-box;
-  background-color: rgb(228, 216, 209);
+  background-color: rgb(255, 255, 255);
 }
 
 .piano-key.white {

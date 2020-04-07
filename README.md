@@ -3,10 +3,11 @@
 Work done in the context of MUMT621.
 
 To run the Node server:
-    `node nodeServer.js` in the root folder.
+    `node server.js` in the root folder.
 
-To run the Python server:
-    `python -m SimpleHTTPServer 3000` in the assets folder.
+###### TODO
+* [ ] Document installation and setup process
+* [ ] Add references to other github projects
 
 ##### Browser MIDI access via JavaScript
 ###### MIDI input handling
