@@ -182,6 +182,7 @@ smi.on 'noteOn', (data)->
 
 smi.on 'noteOff', (data)->
 	{event, key} = data
+	MIDI.noteOff(0, data.key, 0);
 	note = current_notes.get(key)
 	if note
 		note.end_time = performance.now()

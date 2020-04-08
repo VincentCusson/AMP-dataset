@@ -8,6 +8,7 @@ To run the Node server:
 ###### TODO
 * [ ] Document installation and setup process
 * [ ] Add references to other github projects
+* [ ] Split webpage in 2 (description/survey and the recording)
 
 ##### Browser MIDI access via JavaScript
 ###### MIDI input handling
