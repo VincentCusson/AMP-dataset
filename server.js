@@ -23,12 +23,12 @@ app.get('/', function (req, res) {
 
 app.post('/savemidi', function (req, res) {
     var DataBody = req.body;
+    console.log(DataBody);
     var UserObj;
 
     if(store.hasOwn(DataBody.sessionuuid) == false) {
         UserObj = {
             SessionId:DataBody.sessionuuid,
-            test:"TOTOTO",
             midifiles: []
         }
     } else {
@@ -45,6 +45,10 @@ app.post('/savemidi', function (req, res) {
     var filename = "./midifiles/" + DataBody.sessionuuid + "_" + Date.now() + ".midi";
     fs.appendFileSync(filename, Buffer.from(output_array_buffer));
     UserObj.midifiles.push(filename);
+    UserObj.years = DataBody.years;
+    UserObj.level = DataBody.level;
+    UserObj.genre = DataBody.genre;
+    UserObj.hardw = DataBody.hardw;
     console.log("Saved new midi file !!!");
     store.set(DataBody.sessionuuid,UserObj);
     res.send("Saved new midi file !!!");

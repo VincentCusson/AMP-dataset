@@ -7,6 +7,23 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<link rel="icon" sizes="16x16" href="favicon.png" />
 	<link rel="stylesheet" href="app.css" />
+
+	<script>	
+
+		var urls = ["scoreC1.png","scoreS1.png"];
+		var alts = ["scoreC1","scoreS1"];
+		var index = 0;
+
+		function GiveANewScore() {
+			index ++;
+			if(index >= urls.length) 
+			{
+				index = 0;
+			}
+			return { url: urls[index] , alt: alts[index]}; 
+		}
+		
+	</script>
 </head>
 
 <body>
@@ -49,29 +66,29 @@
 
 	<h4>Performance recording</h4>
 	<p>Please play this short excerpt and click on the submit button when your are finish.</p>
-	<!--<select id="selectIn">
-	</select>-->
+	<label for="midiDevicesSelect">Midi Devices:</label>
+
+	<select id="midiDevicesSelect">
+	</select>
+
+	<br>
 
 	<!--Score visualization-->
 	<img id="score" src="scoreS1.png" alt="musicPrompt">
 
 
-	<button class="btn" id="startrec" onclick="change_text()"><span>Start recording</span></button>
+	<br>
+	<button class="btn" id="startrec"><span>Start recording</span></button>
 	<button class="btn" id="submit"><span>Submit</span></button>
-
-	<script>
-		function change_text() {
-	  	console.log("coucou")
-			document.querySelector('#startrec').innerText = 'Restart recording';}
-	</script>
 
 	<button class="btn" id="next" onclick="change_image()" ><span>One more..</span></button>
 
 	<script>
 		function change_image() {
-			document.getElementById("score").src="scoreC1.png";
+			var newImagesdata = GiveANewScore();
+			document.getElementById("score").src = newImagesdata.url;
+			document.getElementById("score").alt = newImagesdata.alt;
 			document.querySelector('#startrec').innerText = 'Start recording';}
-			console.log('coucou')
 	</script>
 
 

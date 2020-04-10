@@ -11,6 +11,14 @@ usersurvey = document.getElementById("usersurvey")
 export_midi_file_button = document.getElementById("submit")
 play_file_button = document.getElementById("play-file-button")
 fullscreen_button = document.getElementById("fullscreen-button")
+terms_checkbox = document.getElementById("styled-checkbox-4")
+
+#form infos
+years = document.getElementById("years")
+level = document.getElementById("level")
+genre = document.getElementById("genre")
+hardw = document.getElementById("hardw")
+
 px_per_second_input = document.getElementById("note-gravity-pixels-per-second")
 note_gravity_direction_select = document.getElementById("note-gravity-direction-select")
 layout_select = document.getElementById("layout-select")
@@ -21,6 +29,10 @@ learn_range_text_el = document.getElementById("learn-midi-range-button-text")
 apply_text_el = document.getElementById("apply-midi-range-button-text")
 cancel_learn_range_button = document.getElementById("cancel-learn-midi-range-button")
 midi_devices_table = document.getElementById("midi-devices")
+option_devies = document.getElementById("midiDevicesSelect")
+option_devies.addEventListener 'change', changeDevice
+record_restart_button = document.getElementById("startrec");
+record_next_one = document.getElementById("next");
 
 MIDI.loadPlugin({
 		soundfontUrl: "MIDI.js-master/examples/soundfont/",
@@ -33,17 +45,10 @@ px_per_second = 20
 note_gravity_direction = "up"
 selected_range = [0, 128]
 midi_file = new MIDIFile()
-
+recording = false
 is_learning_range = false
 learning_range = [null, null]
 view_range_while_learning = [0, 128]
-
-
-objectifyForm = (formArray) ->
-	returnArray = {}
-	for [0...10]
-		returnArray[formArray[i]['name']] = formArray[i]['value']
-	return returnArray
 
 uuid = ->
   'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) ->
@@ -62,8 +67,15 @@ smi = new SimpleMidiInput()
 
 on_success = (midi)->
 	smi.attach(midi)
-	console.log 'smi: ', smi
-	console.log 'inputs (as a Map): ', new Map(midi.inputs)
+	#console.log 'smi: ', smi
+	mapmidi = new Map(midi.inputs)
+	keys = mapmidi.values()
+	for [0...mapmidi.size]
+		namestring = keys.next().value.name
+		opt = document.createElement('option');
+		opt.value = namestring;
+		opt.innerHTML = namestring;
+		option_devies.appendChild(opt);
 
 on_error = (error)->
 	show_error_screen_replacing_ui("Failed to get MIDI access", error)
@@ -76,12 +88,16 @@ else
 
 notes = []
 current_notes = new Map
+console.log(smi)
 #export_midi_file_button.disabled = true
 
 current_pitch_bend_value = 0
 global_pitch_bends = []
 current_sustain_active = off
 global_sustain_periods = []
+
+changeDevice = ->
+	console.log("lol")
 
 demo = ->
 	iid = setInterval ->
@@ -160,7 +176,7 @@ demo = ->
 window.demo = demo
 
 smi.on 'noteOn', (data)->
-	console.log(data.key);
+	console.log(data);
 	MIDI.setVolume(0, 127);
 	MIDI.noteOn(0, data.key, data.velocity, 0);
 	{event, key, velocity} = data
@@ -244,141 +260,164 @@ for is_accidental, i in piano_accidental_pattern
 # console.log group_of_2_span_size/natural_key_size, group_of_3_span_size/natural_key_size, accidental_key_size/natural_key_size
 # 1.8712871287128714 2.9108910891089113 0.6237623762376237
 
+
+record_restart_button.onclick = ->
+	if record_restart_button.innerHTML != "Restart Recording"
+		start_time = performance.now()
+		recording = true
+		if recording == true
+			console.log("lets go")
+			record_restart_button.innerHTML = "Restart Recording"
+	else 
+		notes = []
+
+record_next_one.onclick = ->
+	recording = false
+	record_restart_button.innerHTML = "Start Recording"
+	notes = []
+
 export_midi_file_button.onclick = ->
 
-	if notes.length is 0
-		alert "No notes have been recorded!"
-		return
+	if terms_checkbox.checked != true
+		alert "You need to agree to the terms before submiting."
+	else
+		if notes.length is 0
+			alert "No notes have been recorded!"
+			return
 
-	events = []
-	for note in notes
+		events = []
+		for note in notes
+			events.push({
+				# delta: <computed later>
+				_time: note.start_time
+				type: MIDIEvents.EVENT_MIDI
+				subtype: MIDIEvents.EVENT_MIDI_NOTE_ON
+				channel: 0
+				param1: note.key
+				param2: note.velocity
+			})
+			events.push({
+				# delta: <computed later>
+				_time: note.end_time
+				type: MIDIEvents.EVENT_MIDI
+				subtype: MIDIEvents.EVENT_MIDI_NOTE_OFF
+				channel: 0
+				param1: note.key
+				param2: 5 # TODO?
+			})
+
+		# TODO: EVENT_MIDI_CHANNEL_AFTERTOUCH
+
+		for pitch_bend in global_pitch_bends
+			events.push({
+				# delta: <computed later>
+				_time: pitch_bend.time
+				type: MIDIEvents.EVENT_MIDI
+				subtype: MIDIEvents.EVENT_MIDI_PITCH_BEND
+				channel: 0
+				param1: 0
+				param2: (pitch_bend.value + 1) * 64
+	#			param2: ((pitch_bend.value + 1) * 0x2000) / 128
+	#			param2: pitch_bend.value * 0x2000 / 128 + 64
+	#			param2: pitch_bend.value * 0x1000 / 64 + 64
+			})
+
+		for sustain_period in global_sustain_periods
+			events.push({
+				# delta: <computed later>
+				_time: sustain_period.start_time
+				type: MIDIEvents.EVENT_MIDI
+				subtype: MIDIEvents.EVENT_MIDI_CONTROLLER
+				channel: 0
+				param1: 64
+				param2: 127
+			})
+			events.push({
+				# delta: <computed later>
+				_time: sustain_period.end_time ? performance.now()
+				type: MIDIEvents.EVENT_MIDI
+				subtype: MIDIEvents.EVENT_MIDI_CONTROLLER
+				channel: 0
+				param1: 64
+				param2: 0
+			})
+
+		events.sort((a, b)-> a._time - b._time)
+		total_track_time = events[events.length - 1]._time
+		last_time = null
+		BPM = 120 # beats per minute
+		PPQ = 192 # pulses per quarter note
+		ms_per_tick = 60000 / (BPM * PPQ)
+	#	console.log({total_track_time, ms_per_tick})
+		for event in events
+			unless event.delta?
+				if last_time?
+					event.delta = (event._time - last_time) / ms_per_tick
+				else
+					event.delta = 0
+				last_time = event._time
+			delete event._time
+
 		events.push({
-			# delta: <computed later>
-			_time: note.start_time
-			type: MIDIEvents.EVENT_MIDI
-			subtype: MIDIEvents.EVENT_MIDI_NOTE_ON
-			channel: 0
-			param1: note.key
-			param2: note.velocity
-		})
-		events.push({
-			# delta: <computed later>
-			_time: note.end_time
-			type: MIDIEvents.EVENT_MIDI
-			subtype: MIDIEvents.EVENT_MIDI_NOTE_OFF
-			channel: 0
-			param1: note.key
-			param2: 5 # TODO?
-		})
-
-	# TODO: EVENT_MIDI_CHANNEL_AFTERTOUCH
-
-	for pitch_bend in global_pitch_bends
-		events.push({
-			# delta: <computed later>
-			_time: pitch_bend.time
-			type: MIDIEvents.EVENT_MIDI
-			subtype: MIDIEvents.EVENT_MIDI_PITCH_BEND
-			channel: 0
-			param1: 0
-			param2: (pitch_bend.value + 1) * 64
-#			param2: ((pitch_bend.value + 1) * 0x2000) / 128
-#			param2: pitch_bend.value * 0x2000 / 128 + 64
-#			param2: pitch_bend.value * 0x1000 / 64 + 64
-		})
-
-	for sustain_period in global_sustain_periods
-		events.push({
-			# delta: <computed later>
-			_time: sustain_period.start_time
-			type: MIDIEvents.EVENT_MIDI
-			subtype: MIDIEvents.EVENT_MIDI_CONTROLLER
-			channel: 0
-			param1: 64
-			param2: 127
-		})
-		events.push({
-			# delta: <computed later>
-			_time: sustain_period.end_time ? performance.now()
-			type: MIDIEvents.EVENT_MIDI
-			subtype: MIDIEvents.EVENT_MIDI_CONTROLLER
-			channel: 0
-			param1: 64
-			param2: 0
-		})
-
-	events.sort((a, b)-> a._time - b._time)
-	total_track_time = events[events.length - 1]._time
-	last_time = null
-	BPM = 120 # beats per minute
-	PPQ = 192 # pulses per quarter note
-	ms_per_tick = 60000 / (BPM * PPQ)
-#	console.log({total_track_time, ms_per_tick})
-	for event in events
-		unless event.delta?
-			if last_time?
-				event.delta = (event._time - last_time) / ms_per_tick
-			else
-				event.delta = 0
-			last_time = event._time
-		delete event._time
-
-	events.push({
-		delta: 0
-		type: MIDIEvents.EVENT_META
-		subtype: MIDIEvents.EVENT_META_END_OF_TRACK
-		length: 0
-	})
-
-	first_track_events = [
-		{
 			delta: 0
-			type: MIDIEvents.EVENT_META
-			subtype: MIDIEvents.EVENT_META_TIME_SIGNATURE
-			length: 4
-			data: [4, 2, 24, 8]
-			param1: 4
-			param2: 2
-			param3: 24
-			param4: 8
-		}
-		{
-			delta: 0
-			type: MIDIEvents.EVENT_META
-			subtype: MIDIEvents.EVENT_META_SET_TEMPO
-			length: 3
-			tempo: 500000
-			tempoBPM: 120 # not used
-		}
-#		{
-#			delta: 0
-#			type: MIDIEvents.EVENT_META
-#			subtype: MIDIEvents.EVENT_META_TRACK_NAME
-#			length: 0 # TODO: name "Tempo track" / "Meta track" / "Conductor track"
-#		}
-		{
-			delta: ~~total_track_time
 			type: MIDIEvents.EVENT_META
 			subtype: MIDIEvents.EVENT_META_END_OF_TRACK
 			length: 0
-		}
-	]
-	midi_file.setTrackEvents(0, first_track_events)
-	midi_file.addTrack(1)
-	midi_file.setTrackEvents(1, events)
+		})
 
-	output_array_buffer = midi_file.getContent()
+		first_track_events = [
+			{
+				delta: 0
+				type: MIDIEvents.EVENT_META
+				subtype: MIDIEvents.EVENT_META_TIME_SIGNATURE
+				length: 4
+				data: [4, 2, 24, 8]
+				param1: 4
+				param2: 2
+				param3: 24
+				param4: 8
+			}
+			{
+				delta: 0
+				type: MIDIEvents.EVENT_META
+				subtype: MIDIEvents.EVENT_META_SET_TEMPO
+				length: 3
+				tempo: 500000
+				tempoBPM: 120 # not used
+			}
+	#		{
+	#			delta: 0
+	#			type: MIDIEvents.EVENT_META
+	#			subtype: MIDIEvents.EVENT_META_TRACK_NAME
+	#			length: 0 # TODO: name "Tempo track" / "Meta track" / "Conductor track"
+	#		}
+			{
+				delta: ~~total_track_time
+				type: MIDIEvents.EVENT_META
+				subtype: MIDIEvents.EVENT_META_END_OF_TRACK
+				length: 0
+			}
+		]
+		midi_file.setTrackEvents(0, first_track_events)
+		midi_file.addTrack(1)
+		midi_file.setTrackEvents(1, events)
 
-	stringFirstTrackEvents = JSON.stringify(first_track_events);
-	stringEvents = JSON.stringify(events);
+		output_array_buffer = midi_file.getContent()
 
-	userdata = new FormData(usersurvey);
-	console.log(userdata)
+		stringFirstTrackEvents = JSON.stringify(first_track_events);
+		stringEvents = JSON.stringify(events);
 
-	$.post '/savemidi',
-		type: 'POST'
-		dataType: 'json'
-		sessionuuid: sessionuuid
-		firsttrackevents: stringFirstTrackEvents
-		events: stringEvents
-		(data) -> $('#no-notes-recorded-message').append "Successfully posted to the page."
+		userdata = new FormData(usersurvey);
+		console.log(userdata)
+
+		$.post '/savemidi',
+			type: 'POST'
+			dataType: 'json'
+			sessionuuid: sessionuuid
+			level: level.value
+			genre: genre.value
+			hardw: hardw.value
+			years: years.value
+			firsttrackevents: stringFirstTrackEvents
+			events: stringEvents
+			(data) -> $('#no-notes-recorded-message').append "Successfully posted to the page."
