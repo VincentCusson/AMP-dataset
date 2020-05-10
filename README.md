@@ -1,36 +1,30 @@
-#### Crowdsourced MIDI recorder
+### Crowdsourced MIDI recorder
 
 Work done in the context of MUMT621.
 
-To run the Node server:
-    `node server.js` in the root folder.
+This project describes the first steps toward the creation of the AMP (Amateur MIDI Performance) dataset. This code includes the Web recording interface and early data analysis in Python.
 
-###### TODO
-* [ ] Document installation and setup process
-* [ ] Add references to other github projects
-* [ ] Split webpage in 2 (description/survey and the recording)
+---
 
-##### Browser MIDI access via JavaScript
-###### MIDI input handling
-* https://github.com/djipco/webmidi
+To run the web page locally:
+* Visit the official [Node.js website](https://nodejs.org/) and get a pre-built installer for your platform
+* In the root folder, run `npm i` to install dependencies
+* From your terminal, run `node server.js` to launch the server
+* With the Chrome browser, access http://localhost:8080
 
-###### Write to MIDI file
-* https://github.com/Tonejs/Midi
-* https://github.com/grimmdude/MidiWriterJS
-* https://github.com/sergi/jsmidi
-* https://github.com/jazz-soft/JZZ-midi-SMF
-* https://midi-me.glitch.me/
-* https://github.com/cagpie/web-midi-recording
+To run the MIDI analysis with Python 3:
+* From your terminal, install the dependencies with `pip install -r requirements.txt`
+* In the root folder, run the script with `python midiAnalysis.py`
 
-###### MIDI sound playback
-* https://github.com/gleitz/midi-js-soundfonts
-* https://github.com/Mindwerks/wildmidi
-* https://github.com/mudcube/MIDI.js
 
-###### Note visualisation
-* https://github.com/topics/piano-keyboard?l=javascript
-* https://github.com/felipefialho/piano
-* https://github.com/ManuelVargas1251/Chord-Finder
-* https://github.com/OutsourcedGuru/syn-midi !!!
 
-##### MIDI files analysis in Python
+
+
+
+
+##### Acknowledgments
+* [OutsourcedGuru/syn-midi](https://github.com/OutsourcedGuru/syn-midi)
+* [mudcube/MIDI.js](https://github.com/mudcube/MIDI.js)
+* [1j01/midi-recorder](https://github.com/1j01/midi-recorder)
+* [mido/mido](https://github.com/mido/mido)
+* [djipco/webmidi](https://github.com/djipco/webmidi)
